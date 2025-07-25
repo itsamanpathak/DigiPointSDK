@@ -6,7 +6,7 @@ package com.amanpathak.digipointsdk
 data class City(
     val name: String,
     val state: String,
-    val coordinate: DigipointCoordinate
+    val coordinate: DigipinCoordinate
 )
 
 /**
@@ -15,5 +15,5 @@ data class City(
 data class Landmark(
     val name: String,
     val type: String,
-    val coordinate: DigipointCoordinate
+    val coordinate: DigipinCoordinate
 ) 

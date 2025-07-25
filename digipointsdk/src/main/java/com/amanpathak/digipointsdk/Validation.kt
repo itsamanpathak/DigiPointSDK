@@ -81,7 +81,7 @@ internal object Validation {
      * @param coordinate The coordinate to validate
      * @return ValidationResult containing success status and error message if any
      */
-    fun validateIndianBounds(coordinate: DigipointCoordinate): ValidationResult {
+    fun validateIndianBounds(coordinate: DigipinCoordinate): ValidationResult {
         val coordValidation = validateCoordinates(coordinate.latitude, coordinate.longitude)
         if (!coordValidation.isValid) {
             return coordValidation
@@ -170,7 +170,7 @@ internal object Validation {
      * @param coordinates The list of coordinates to validate
      * @return ValidationResult containing success status and error message if any
      */
-    fun validateCoordinateList(coordinates: List<DigipointCoordinate>): ValidationResult {
+    fun validateCoordinateList(coordinates: List<DigipinCoordinate>): ValidationResult {
         if (coordinates.isEmpty()) {
             return ValidationResult(false, Constants.ErrorMessages.EMPTY_COORDINATE_LIST)
         }
@@ -212,7 +212,7 @@ internal object Validation {
     /**
      * Checks if coordinate is within Indian geographical bounds.
      */
-    private fun isWithinIndianBounds(coordinate: DigipointCoordinate): Boolean {
+    private fun isWithinIndianBounds(coordinate: DigipinCoordinate): Boolean {
         return coordinate.latitude >= Constants.INDIA_MIN_LAT &&
                coordinate.latitude <= Constants.INDIA_MAX_LAT &&
                coordinate.longitude >= Constants.INDIA_MIN_LON &&
@@ -234,7 +234,7 @@ internal object Validation {
      * Extension function to validate coordinate and throw exception if invalid.
      */
     @Throws(DigipointOutOfBoundsException::class)
-    fun DigipointCoordinate.validateIndianBoundsAndThrow() {
+    fun DigipinCoordinate.validateIndianBoundsAndThrow() {
         val result = validateIndianBounds(this)
         if (!result.isValid) {
             throw DigipointOutOfBoundsException(this, DigipointSDK.INDIA_BOUNDS)

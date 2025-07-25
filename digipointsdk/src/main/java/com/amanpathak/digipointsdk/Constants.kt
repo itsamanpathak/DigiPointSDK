@@ -24,8 +24,8 @@ internal object Constants {
     const val INDIA_MAX_LON = 99.5
     
     object ErrorMessages {
-        const val INVALID_DIGIPOINT_LENGTH = "DIGIPOINT code must be exactly 10 characters"
-        const val INVALID_DIGIPOINT_CHARACTERS = "DIGIPOINT code contains invalid characters"
+        const val INVALID_DIGIPOINT_LENGTH = "DigiPin must be exactly 10 characters"
+        const val INVALID_DIGIPOINT_CHARACTERS = "DigiPin contains invalid characters"
         const val INVALID_LATITUDE = "Latitude must be between -90 and 90"
         const val INVALID_LONGITUDE = "Longitude must be between -180 and 180"
         const val COORDINATE_OUT_OF_BOUNDS = "Coordinate is outside Indian geographical bounds"
@@ -37,14 +37,14 @@ internal object Constants {
         data class CityInfo(
             val name: String,
             val state: String,
-            val coordinate: DigipointCoordinate
+            val coordinate: DigipinCoordinate
         )
         
         val ALL_CITIES = listOf(
-            CityInfo("Delhi", "Delhi", DigipointCoordinate(28.6139, 77.2090)),
-            CityInfo("Mumbai", "Maharashtra", DigipointCoordinate(19.0760, 72.8777)),
-            CityInfo("Bangalore", "Karnataka", DigipointCoordinate(12.9716, 77.5946)),
-            CityInfo("Chennai", "Tamil Nadu", DigipointCoordinate(13.0827, 80.2707))
+            CityInfo("Delhi", "Delhi", DigipinCoordinate(28.6139, 77.2090)),
+            CityInfo("Mumbai", "Maharashtra", DigipinCoordinate(19.0760, 72.8777)),
+            CityInfo("Bangalore", "Karnataka", DigipinCoordinate(12.9716, 77.5946)),
+            CityInfo("Chennai", "Tamil Nadu", DigipinCoordinate(13.0827, 80.2707))
         )
         
         fun findCityByName(name: String): CityInfo? {
@@ -56,14 +56,14 @@ internal object Constants {
         data class LandmarkInfo(
             val name: String,
             val type: String,
-            val coordinate: DigipointCoordinate
+            val coordinate: DigipinCoordinate
         )
         
         val ALL_LANDMARKS = listOf(
-            LandmarkInfo("Taj Mahal", "Monument", DigipointCoordinate(27.1751, 78.0421)),
-            LandmarkInfo("Gateway of India", "Monument", DigipointCoordinate(18.9217, 72.8347)),
-            LandmarkInfo("India Gate", "Monument", DigipointCoordinate(28.6129, 77.2295)),
-            LandmarkInfo("Qutub Minar", "Monument", DigipointCoordinate(28.5245, 77.1855))
+            LandmarkInfo("Taj Mahal", "Monument", DigipinCoordinate(27.1751, 78.0421)),
+            LandmarkInfo("Gateway of India", "Monument", DigipinCoordinate(18.9217, 72.8347)),
+            LandmarkInfo("India Gate", "Monument", DigipinCoordinate(28.6129, 77.2295)),
+            LandmarkInfo("Qutub Minar", "Monument", DigipinCoordinate(28.5245, 77.1855))
         )
     }
 } 

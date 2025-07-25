@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amanpathak.digipointsdk.DigipointSDK
-import com.amanpathak.digipointsdk.DigipointCoordinate
+import com.amanpathak.digipointsdk.DigipinCoordinate
 import com.amanpathak.digipointsdk.demo.ui.theme.DigipointTheme
 
 class MainActivity : ComponentActivity() {
@@ -221,7 +221,7 @@ fun DigipointConverterScreen() {
                         try {
                             val lat = latInput.toDouble()
                             val lon = lonInput.toDouble()
-                            val code = sdk.encode(DigipointCoordinate(lat, lon))
+                            val code = sdk.encode(DigipinCoordinate(lat, lon))
                             encodedDigipoint = code.code
                         } catch (e: Exception) {
                             encodedDigipoint = null

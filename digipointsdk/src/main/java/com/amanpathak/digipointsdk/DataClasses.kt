@@ -1,6 +1,6 @@
 package com.amanpathak.digipointsdk
 
-data class DigipointCoordinate(
+data class DigipinCoordinate(
     val latitude: Double,
     val longitude: Double
 ) {
@@ -20,7 +20,7 @@ data class DigipointCoordinate(
 
 data class DigipointCode(
     val code: String,
-    val centerCoordinate: DigipointCoordinate,
+    val centerCoordinate: DigipinCoordinate,
     val boundingBox: DigipointBoundingBox
 ) {
     init {
@@ -30,7 +30,7 @@ data class DigipointCode(
     }
     
     /**
-     * Returns the DIGIPOINT code formatted with hyphens for display (e.g., "39J-438-P582")
+     * Returns the DIGIPIN formatted with hyphens for display (e.g., "39J-438-P582")
      */
     fun getFormattedCode(): String {
         return if (code.length == 10) {
@@ -41,13 +41,13 @@ data class DigipointCode(
     }
     
     override fun toString(): String {
-        return "DigipointCode(code='$code', center=$centerCoordinate)"
+        return "Digipin(code='$code', center=$centerCoordinate)"
     }
 }
 
 data class DigipointBoundingBox(
-    val southwest: DigipointCoordinate,
-    val northeast: DigipointCoordinate
+    val southwest: DigipinCoordinate,
+    val northeast: DigipinCoordinate
 ) {
     init {
         require(southwest.latitude <= northeast.latitude) {
@@ -58,13 +58,13 @@ data class DigipointBoundingBox(
         }
     }
     
-    fun center(): DigipointCoordinate {
+    fun center(): DigipinCoordinate {
         val centerLat = (southwest.latitude + northeast.latitude) / 2
         val centerLon = (southwest.longitude + northeast.longitude) / 2
-        return DigipointCoordinate(centerLat, centerLon)
+        return DigipinCoordinate(centerLat, centerLon)
     }
     
-    fun contains(coordinate: DigipointCoordinate): Boolean {
+    fun contains(coordinate: DigipinCoordinate): Boolean {
         return coordinate.latitude >= southwest.latitude &&
                coordinate.latitude <= northeast.latitude &&
                coordinate.longitude >= southwest.longitude &&
@@ -83,7 +83,7 @@ data class DigipointBoundingBox(
 open class DigipointException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 class DigipointOutOfBoundsException(
-    coordinate: DigipointCoordinate,
+    coordinate: DigipinCoordinate,
     bounds: DigipointBoundingBox
 ) : DigipointException(
     "Coordinate $coordinate is outside valid bounds $bounds"

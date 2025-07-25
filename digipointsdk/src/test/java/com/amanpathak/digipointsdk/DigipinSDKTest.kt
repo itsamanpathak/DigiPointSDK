@@ -16,7 +16,7 @@ class DigipointSDKTest {
     @Test
     fun testEncodeValidCoordinate() {
         // Delhi coordinates
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val result = sdk.encode(coordinate)
         
         assertNotNull(result)
@@ -40,7 +40,7 @@ class DigipointSDKTest {
     
     @Test
     fun testDecodeValidCode() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         val decoded = sdk.decode(encoded.code)
         
@@ -65,18 +65,18 @@ class DigipointSDKTest {
     @Test
     fun testIsWithinIndianBounds() {
         // Valid Indian coordinates
-        assertTrue(sdk.isWithinIndianBounds(DigipointCoordinate(28.6139, 77.2090))) // Delhi
-        assertTrue(sdk.isWithinIndianBounds(DigipointCoordinate(19.0760, 72.8777))) // Mumbai
-        assertTrue(sdk.isWithinIndianBounds(DigipointCoordinate(13.0827, 80.2707))) // Chennai
+        assertTrue(sdk.isWithinIndianBounds(DigipinCoordinate(28.6139, 77.2090))) // Delhi
+        assertTrue(sdk.isWithinIndianBounds(DigipinCoordinate(19.0760, 72.8777))) // Mumbai
+        assertTrue(sdk.isWithinIndianBounds(DigipinCoordinate(13.0827, 80.2707))) // Chennai
         
         // Invalid coordinates
-        assertFalse(sdk.isWithinIndianBounds(DigipointCoordinate(0.0, 0.0))) // Africa
-        assertFalse(sdk.isWithinIndianBounds(DigipointCoordinate(40.7128, -74.0060))) // New York
+        assertFalse(sdk.isWithinIndianBounds(DigipinCoordinate(0.0, 0.0))) // Africa
+        assertFalse(sdk.isWithinIndianBounds(DigipinCoordinate(40.7128, -74.0060))) // New York
     }
     
     @Test
     fun testIsValidDigipointCode() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         
         assertTrue(sdk.isValidDigipointCode(encoded.code))
@@ -87,7 +87,7 @@ class DigipointSDKTest {
     
     @Test
     fun testGetNeighbors() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         val neighbors = sdk.getNeighbors(encoded.code)
         
@@ -103,7 +103,7 @@ class DigipointSDKTest {
     
     @Test
     fun testGetNeighborsWithRadius() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         
         val neighbors1 = sdk.getNeighbors(encoded.code, 1)
@@ -114,14 +114,14 @@ class DigipointSDKTest {
     
     @Test(expected = IllegalArgumentException::class)
     fun testGetNeighborsInvalidRadius() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         sdk.getNeighbors(encoded.code, 0)
     }
     
     @Test
     fun testEncodeDecode() {
-        val originalCoordinate = DigipointCoordinate(28.6139, 77.2090)
+        val originalCoordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(originalCoordinate)
         val decoded = sdk.decode(encoded.code)
         
@@ -132,7 +132,7 @@ class DigipointSDKTest {
     
     @Test
     fun testBoundingBox() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val encoded = sdk.encode(coordinate)
         val boundingBox = encoded.boundingBox
         
@@ -150,10 +150,10 @@ class DigipointSDKTest {
     @Test
     fun testMultipleCoordinates() {
         val coordinates = listOf(
-            DigipointCoordinate(28.6139, 77.2090), // Delhi
-            DigipointCoordinate(19.0760, 72.8777), // Mumbai
-            DigipointCoordinate(13.0827, 80.2707), // Chennai
-            DigipointCoordinate(22.5726, 88.3639)  // Kolkata
+            DigipinCoordinate(28.6139, 77.2090), // Delhi
+            DigipinCoordinate(19.0760, 72.8777), // Mumbai
+            DigipinCoordinate(13.0827, 80.2707), // Chennai
+            DigipinCoordinate(22.5726, 88.3639)  // Kolkata
         )
         
         coordinates.forEach { coordinate ->

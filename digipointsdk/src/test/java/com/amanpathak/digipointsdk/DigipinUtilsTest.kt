@@ -15,8 +15,8 @@ class DigipointUtilsTest {
     
     @Test
     fun testCalculateDistance() {
-        val coord1 = DigipointCoordinate(28.6139, 77.2090) // Delhi
-        val coord2 = DigipointCoordinate(19.0760, 72.8777) // Mumbai
+        val coord1 = DigipinCoordinate(28.6139, 77.2090) // Delhi
+        val coord2 = DigipinCoordinate(19.0760, 72.8777) // Mumbai
         
         val distance = sdk.calculateDistance(coord1, coord2)
         
@@ -26,7 +26,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testCalculateDistanceSamePoint() {
-        val coord = DigipointCoordinate(28.6139, 77.2090)
+        val coord = DigipinCoordinate(28.6139, 77.2090)
         val distance = sdk.calculateDistance(coord, coord)
         
         assertEquals("Distance to same point should be 0", 0.0, distance, 0.1)
@@ -34,7 +34,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testCalculateGridSizeMeters() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val digipinCode = sdk.encode(coordinate)
         
         val gridSize = sdk.calculateAreaSquareMeters(digipinCode)
@@ -45,7 +45,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testCreateMapsUrl() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val digipinCode = sdk.encode(coordinate)
         
         val url = sdk.createMapsUrl(digipinCode)
@@ -57,7 +57,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testGetPrecisionDescription() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val digipinCode = sdk.encode(coordinate)
         
         val description = sdk.getPrecisionDescription(digipinCode)
@@ -69,7 +69,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testCalculateAreaSquareMeters() {
-        val coordinate = DigipointCoordinate(28.6139, 77.2090)
+        val coordinate = DigipinCoordinate(28.6139, 77.2090)
         val digipinCode = sdk.encode(coordinate)
         
         val area = sdk.calculateAreaSquareMeters(digipinCode)
@@ -80,7 +80,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testFindDigipointCodesInRadius() {
-        val center = DigipointCoordinate(28.6139, 77.2090) // Delhi
+        val center = DigipinCoordinate(28.6139, 77.2090) // Delhi
         val radius = 1000.0 // 1km
         
         val codes = sdk.findDigipointCodesInRadius(center, radius)
@@ -97,7 +97,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testFindDigipointCodesInRadiusSmallRadius() {
-        val center = DigipointCoordinate(28.6139, 77.2090)
+        val center = DigipinCoordinate(28.6139, 77.2090)
         val radius = 10.0 // Very small radius
         
         val codes = sdk.findDigipointCodesInRadius(center, radius)
@@ -108,7 +108,7 @@ class DigipointUtilsTest {
     
     @Test
     fun testFindDigipointCodesInRadiusLargeRadius() {
-        val center = DigipointCoordinate(28.6139, 77.2090)
+        val center = DigipinCoordinate(28.6139, 77.2090)
         val radius = 10000.0 // 10km
         
         val codes = sdk.findDigipointCodesInRadius(center, radius)

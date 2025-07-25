@@ -53,44 +53,13 @@ class DigipointSDK private constructor(
         internal const val INDIA_MAX_LON = Constants.INDIA_MAX_LON
         
         val INDIA_BOUNDS = DigipointBoundingBox(
-            southwest = DigipointCoordinate(INDIA_MIN_LAT, INDIA_MIN_LON),
-            northeast = DigipointCoordinate(INDIA_MAX_LAT, INDIA_MAX_LON)
+            southwest = DigipinCoordinate(INDIA_MIN_LAT, INDIA_MIN_LON),
+            northeast = DigipinCoordinate(INDIA_MAX_LAT, INDIA_MAX_LON)
         )
-        
-        fun getCityDigipoint(cityName: String): DigipointCode? {
-            val city = Constants.IndianCities.findCityByName(cityName)
-            return city?.let { DigipointSDK.Builder().build().encode(it.coordinate) }
-        }
-        
-        fun getAllCities(): List<City> {
-            return Constants.IndianCities.ALL_CITIES.map { city ->
-                City(
-                    name = city.name,
-                    state = city.state,
-                    coordinate = city.coordinate
-                )
-            }
-        }
-        
-        fun getAllLandmarks(): List<Landmark> {
-            return Constants.Landmarks.ALL_LANDMARKS.map { landmark ->
-                Landmark(
-                    name = landmark.name,
-                    type = landmark.type,
-                    coordinate = landmark.coordinate
-                )
-            }
-        }
-    }
-    
-    fun getLastWarning(): String? {
-        val warning = lastWarning
-        lastWarning = null // Clear the warning after reading
-        return warning
     }
     
     @Throws(DigipointOutOfBoundsException::class)
-    fun encode(coordinate: DigipointCoordinate): DigipointCode {
+    fun encode(coordinate: DigipinCoordinate): DigipointCode {
         if (config.validationEnabled) {
             val validation = Validation.validateIndianBounds(coordinate)
             if (!validation.isValid) {
@@ -142,7 +111,7 @@ class DigipointSDK private constructor(
     
     @Throws(DigipointOutOfBoundsException::class)
     fun encode(latitude: Double, longitude: Double): DigipointCode {
-        return encode(DigipointCoordinate(latitude, longitude))
+        return encode(DigipinCoordinate(latitude, longitude))
     }
     
     @Throws(DigipointInvalidFormatException::class)
@@ -164,7 +133,7 @@ class DigipointSDK private constructor(
         )
     }
     
-    fun isWithinIndianBounds(coordinate: DigipointCoordinate): Boolean {
+    fun isWithinIndianBounds(coordinate: DigipinCoordinate): Boolean {
         return INDIA_BOUNDS.contains(coordinate)
     }
     
@@ -198,7 +167,7 @@ class DigipointSDK private constructor(
                 val neighborLon = centerDigipoint.centerCoordinate.longitude + (lonOffset * gridSizeLon)
                 
                 try {
-                    val neighborCoord = DigipointCoordinate(neighborLat, neighborLon)
+                    val neighborCoord = DigipinCoordinate(neighborLat, neighborLon)
                     if (isWithinIndianBounds(neighborCoord)) {
                         neighbors.add(encode(neighborCoord))
                     }
@@ -212,7 +181,7 @@ class DigipointSDK private constructor(
     }
     
     fun findDigipointCodesInRadius(
-        center: DigipointCoordinate,
+        center: DigipinCoordinate,
         radiusMeters: Double
     ): List<DigipointCode> {
         if (config.validationEnabled) {
@@ -259,11 +228,11 @@ class DigipointSDK private constructor(
         return Utils.calculateAreaSquareMeters(digipointCode)
     }
     
-    fun calculateDistance(coord1: DigipointCoordinate, coord2: DigipointCoordinate): Double {
+    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double {
         return Utils.calculateDistance(coord1, coord2)
     }
     
-    private fun decodeInternal(code: String): Pair<DigipointCoordinate, DigipointBoundingBox> {
+    private fun decodeInternal(code: String): Pair<DigipinCoordinate, DigipointBoundingBox> {
         var latMin = INDIA_MIN_LAT
         var latMax = INDIA_MAX_LAT
         var lonMin = INDIA_MIN_LON
@@ -276,7 +245,7 @@ class DigipointSDK private constructor(
             var row = -1
             var col = -1
             
-            // Locate character in DIGIPOINT grid
+            // Locate character in DIGIPIN grid
             for (r in 0..3) {
                 for (c in 0..3) {
                     if (SYMBOLS[r * 4 + c] == char) {
@@ -308,14 +277,14 @@ class DigipointSDK private constructor(
             lonMax = lon2
         }
         
-        val centerCoord = DigipointCoordinate(
+        val centerCoord = DigipinCoordinate(
             latitude = (latMin + latMax) / 2,
             longitude = (lonMin + lonMax) / 2
         )
         
         val boundingBox = DigipointBoundingBox(
-            southwest = DigipointCoordinate(latMin, lonMin),
-            northeast = DigipointCoordinate(latMax, lonMax)
+            southwest = DigipinCoordinate(latMin, lonMin),
+            northeast = DigipinCoordinate(latMax, lonMax)
         )
         
         return Pair(centerCoord, boundingBox)

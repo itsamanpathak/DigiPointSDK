@@ -5,7 +5,7 @@ import kotlin.math.*
 internal object Utils {
     private const val EARTH_RADIUS_METERS = 6371000.0
     
-    fun calculateDistance(coord1: DigipointCoordinate, coord2: DigipointCoordinate): Double {
+    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double {
         val lat1Rad = Math.toRadians(coord1.latitude)
         val lat2Rad = Math.toRadians(coord2.latitude)
         val deltaLatRad = Math.toRadians(coord2.latitude - coord1.latitude)
@@ -21,12 +21,12 @@ internal object Utils {
     fun calculateGridSizeMeters(digipinCode: DigipointCode): Double {
         val boundingBox = digipinCode.boundingBox
         val latDistance = calculateDistance(
-            DigipointCoordinate(boundingBox.southwest.latitude, boundingBox.center().longitude),
-            DigipointCoordinate(boundingBox.northeast.latitude, boundingBox.center().longitude)
+            DigipinCoordinate(boundingBox.southwest.latitude, boundingBox.center().longitude),
+            DigipinCoordinate(boundingBox.northeast.latitude, boundingBox.center().longitude)
         )
         val lonDistance = calculateDistance(
-            DigipointCoordinate(boundingBox.center().latitude, boundingBox.southwest.longitude),
-            DigipointCoordinate(boundingBox.center().latitude, boundingBox.northeast.longitude)
+            DigipinCoordinate(boundingBox.center().latitude, boundingBox.southwest.longitude),
+            DigipinCoordinate(boundingBox.center().latitude, boundingBox.northeast.longitude)
         )
         
         return (latDistance + lonDistance) / 2
@@ -53,13 +53,13 @@ internal object Utils {
         val boundingBox = digipinCode.boundingBox
         
         val latDistance = calculateDistance(
-            DigipointCoordinate(boundingBox.southwest.latitude, boundingBox.center().longitude),
-            DigipointCoordinate(boundingBox.northeast.latitude, boundingBox.center().longitude)
+            DigipinCoordinate(boundingBox.southwest.latitude, boundingBox.center().longitude),
+            DigipinCoordinate(boundingBox.northeast.latitude, boundingBox.center().longitude)
         )
         
         val lonDistance = calculateDistance(
-            DigipointCoordinate(boundingBox.center().latitude, boundingBox.southwest.longitude),
-            DigipointCoordinate(boundingBox.center().latitude, boundingBox.northeast.longitude)
+            DigipinCoordinate(boundingBox.center().latitude, boundingBox.southwest.longitude),
+            DigipinCoordinate(boundingBox.center().latitude, boundingBox.northeast.longitude)
         )
         
         return latDistance * lonDistance

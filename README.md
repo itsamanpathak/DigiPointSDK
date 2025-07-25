@@ -72,7 +72,7 @@ Add the dependency to your app-level `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.amanpathak:DigiPointSDK:0.1.0")
+    implementation("com.github.itsamanpathak:DigiPointSDK:0.1.0")
 }
 ```
 
@@ -365,7 +365,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Official DIGIPIN Documentation](https://digipin.gov.in/)
 - [India Post Official Website](https://www.indiapost.gov.in/)
-- [GitHub Repository](https://github.com/amanpathak/DigiPointSDK)
+- [GitHub Repository](https://github.com/itsamanpathak/DigiPointSDK)
 
 ---
 

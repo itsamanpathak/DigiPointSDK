@@ -68,7 +68,7 @@ dependencies {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.github.amanpathak"
+            groupId = "com.github.itsamanpathak"
             artifactId = "digipin-android"
             version = "0.1.0"
 
@@ -79,7 +79,7 @@ publishing {
             pom {
                 name.set("Digipin Android SDK")
                 description.set("Android SDK for India's Digital Postal Index Number (DIGIPIN) system - 4m×4m precision geo-coding")
-                url.set("https://github.com/amanpathak/digipin-android")
+                url.set("https://github.com/itsamanpathak/DigiPointSDK")
                 
                 licenses {
                     license {
@@ -97,9 +97,9 @@ publishing {
                 }
                 
                 scm {
-                    connection.set("scm:git:git://github.com/amanpathak/digipin-android.git")
-                    developerConnection.set("scm:git:ssh://github.com/amanpathak/digipin-android.git")
-                    url.set("https://github.com/amanpathak/digipin-android")
+                    connection.set("scm:git:git://github.com/itsamanpathak/DigiPointSDK.git")
+                    developerConnection.set("scm:git:ssh://github.com/itsamanpathak/DigiPointSDK.git")
+                    url.set("https://github.com/itsamanpathak/DigiPointSDK")
                 }
             }
         }

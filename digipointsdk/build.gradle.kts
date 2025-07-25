@@ -88,14 +88,6 @@ publishing {
                     }
                 }
                 
-                developers {
-                    developer {
-                        id.set("amanpathak")
-                        name.set("Aman Pathak")
-                        email.set("your.email@example.com")
-                    }
-                }
-                
                 scm {
                     connection.set("scm:git:git://github.com/itsamanpathak/DigiPointSDK.git")
                     developerConnection.set("scm:git:ssh://github.com/itsamanpathak/DigiPointSDK.git")

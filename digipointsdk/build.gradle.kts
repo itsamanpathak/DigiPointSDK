@@ -69,7 +69,7 @@ publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.github.itsamanpathak"
-            artifactId = "digipin-android"
+            artifactId = "DigiPointSDK"
             version = "0.1.0"
 
             afterEvaluate {
@@ -77,7 +77,7 @@ publishing {
             }
 
             pom {
-                name.set("Digipin Android SDK")
+                name.set("DigiPoint Android SDK")
                 description.set("Android SDK for India's Digital Postal Index Number (DIGIPIN) system - 4m×4m precision geo-coding")
                 url.set("https://github.com/itsamanpathak/DigiPointSDK")
                 

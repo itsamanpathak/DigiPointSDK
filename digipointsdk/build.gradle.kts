@@ -16,7 +16,7 @@ android {
         consumerProguardFiles("consumer-rules.pro")
         
         // Library version
-        buildConfigField("String", "SDK_VERSION", "\"1.0.0\"")
+        buildConfigField("String", "SDK_VERSION", "\"0.1.0\"")
         buildConfigField("String", "SDK_NAME", "\"Digipin Android SDK\"")
     }
 
@@ -70,7 +70,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "com.github.amanpathak"
             artifactId = "digipin-android"
-            version = "1.0.0"
+            version = "0.1.0"
 
             afterEvaluate {
                 from(components["release"])

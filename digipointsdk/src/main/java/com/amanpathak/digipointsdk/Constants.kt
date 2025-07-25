@@ -1,7 +1,7 @@
 package com.amanpathak.digipointsdk
 
 internal object Constants {
-    const val VERSION = "1.0.0"
+    const val VERSION = "0.1.0"
     const val GRID_SIZE_METERS = 4.0
     const val DIGIPOINT_CODE_LENGTH = 10
     

@@ -27,6 +27,8 @@
 
 DigiPoint Android SDK is a Kotlin library for India's Digital Postal Index Number (DIGIPIN) system. Convert coordinates to 10-character codes and back with 4m×4m precision.
 
+> **⚠️ Pre-release Version (v0.1.0)**: This is a beta release for testing and feedback. Please report any issues you encounter.
+
 **Key Benefits:**
 - ⚡ **High Precision**: 4m×4m grid accuracy
 - 🗺️ **India-Focused**: Optimized for Indian boundaries
@@ -70,7 +72,7 @@ Add the dependency to your app-level `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.amanpathak:DigiPointSDK:1.0.0")
+    implementation("com.github.amanpathak:DigiPointSDK:0.1.0")
 }
 ```
 

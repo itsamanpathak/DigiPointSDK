@@ -30,7 +30,7 @@ data class DigipointCode(
     }
     
     /**
-     * Returns the DIGIPIN formatted with hyphens for display (e.g., "39J-438-P582")
+     * Returns formatted code with hyphens (e.g., "39J-438-P582")
      */
     fun getFormattedCode(): String {
         return if (code.length == 10) {

@@ -49,7 +49,7 @@ fun copyToClipboard(context: Context, text: String, label: String = "Digipoint")
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clip = ClipData.newPlainText(label, text)
     clipboard.setPrimaryClip(clip)
-    Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "Copied!", Toast.LENGTH_SHORT).show()
 }
 
 fun isValidLatitude(lat: String): Boolean {
@@ -71,8 +71,8 @@ fun isValidLongitude(lon: String): Boolean {
 }
 
 fun isValidDigipoint(digipoint: String): Boolean {
-    val cleanDigipoint = digipoint.replace("-", "")
-    return cleanDigipoint.length == 10 && cleanDigipoint.all { it in "FC98J327K456LMPT" }
+    val clean = digipoint.replace("-", "")
+    return clean.length == 10 && clean.all { it in "FC98J327K456LMPT" }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

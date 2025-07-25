@@ -1,17 +1,11 @@
 package com.amanpathak.digipointsdk
 
 /**
- * Main entry point for the DIGIPOINT SDK.
+ * Main SDK class for DIGIPIN operations.
  * 
- * Usage:
- * ```
- * val sdk = DigipointSDK.Builder()
- *     .setValidationEnabled(true)
- *     .build()
- * 
- * val coordinate = DigipointCoordinate(28.6139, 77.2090)
- * val digipointCode = sdk.encode(coordinate)
- * ```
+ * Basic usage:
+ * val sdk = DigipointSDK.Builder().build()
+ * val code = sdk.encode(28.6139, 77.2090)
  */
 class DigipointSDK private constructor(
     private val config: Config
@@ -60,6 +54,7 @@ class DigipointSDK private constructor(
     
     @Throws(DigipointOutOfBoundsException::class)
     fun encode(coordinate: DigipinCoordinate): DigipointCode {
+        // validate bounds if enabled
         if (config.validationEnabled) {
             val validation = Validation.validateIndianBounds(coordinate)
             if (!validation.isValid) {
@@ -79,19 +74,18 @@ class DigipointSDK private constructor(
             val latDiv = (latMax - latMin) / 4
             val lonDiv = (lonMax - lonMin) / 4
             
-            // REVERSED row logic (to match original)
+            // row logic is reversed to match original algo
             var row = 3 - ((coordinate.latitude - latMin) / latDiv).toInt()
             var col = ((coordinate.longitude - lonMin) / lonDiv).toInt()
             
+            // clamp values
             row = row.coerceIn(0, 3)
             col = col.coerceIn(0, 3)
             
             val symbol = SYMBOLS[row * 4 + col]
             codeBuilder.append(symbol)
             
-            // Don't add hyphens to the core code - only for display
-            
-            // Update bounds (reverse logic for row)
+            // update bounds for next iteration
             latMax = latMin + latDiv * (4 - row)
             latMin = latMin + latDiv * (3 - row)
             
@@ -116,6 +110,7 @@ class DigipointSDK private constructor(
     
     @Throws(DigipointInvalidFormatException::class)
     fun decode(code: String): DigipointCode {
+        // validate format if enabled
         if (config.validationEnabled) {
             val validation = Validation.validateDigipointCode(code)
             if (!validation.isValid) {
@@ -142,6 +137,7 @@ class DigipointSDK private constructor(
     }
     
     fun getNeighbors(code: String, radius: Int = 1): List<DigipointCode> {
+        // validate radius if needed
         if (config.validationEnabled) {
             val validation = Validation.validateRadius(radius)
             if (!validation.isValid) {
@@ -154,14 +150,16 @@ class DigipointSDK private constructor(
         val centerDigipoint = decode(code)
         val neighbors = mutableListOf<DigipointCode>()
         
+        // calculate grid size
         val gridSizeLat = (centerDigipoint.boundingBox.northeast.latitude - 
                           centerDigipoint.boundingBox.southwest.latitude)
         val gridSizeLon = (centerDigipoint.boundingBox.northeast.longitude - 
                           centerDigipoint.boundingBox.southwest.longitude)
         
+        // find neighbors in grid
         for (latOffset in -radius..radius) {
             for (lonOffset in -radius..radius) {
-                if (latOffset == 0 && lonOffset == 0) continue
+                if (latOffset == 0 && lonOffset == 0) continue // skip center
                 
                 val neighborLat = centerDigipoint.centerCoordinate.latitude + (latOffset * gridSizeLat)
                 val neighborLon = centerDigipoint.centerCoordinate.longitude + (lonOffset * gridSizeLon)
@@ -172,7 +170,7 @@ class DigipointSDK private constructor(
                         neighbors.add(encode(neighborCoord))
                     }
                 } catch (e: Exception) {
-                    // Skip invalid coordinates
+                    // skip invalid coords
                 }
             }
         }
@@ -184,6 +182,7 @@ class DigipointSDK private constructor(
         center: DigipinCoordinate,
         radiusMeters: Double
     ): List<DigipointCode> {
+        // validate radius
         if (config.validationEnabled) {
             val validation = Validation.validateDistanceRadius(radiusMeters)
             if (!validation.isValid) {
@@ -193,6 +192,7 @@ class DigipointSDK private constructor(
             lastWarning = validation.warningMessage
         }
         
+        // get center digipoint
         val centerDigipoint = try {
             encode(center)
         } catch (e: DigipointOutOfBoundsException) {
@@ -203,7 +203,7 @@ class DigipointSDK private constructor(
         val gridSizeMeters = Utils.calculateGridSizeMeters(centerDigipoint)
         val gridRadius = kotlin.math.ceil(radiusMeters / gridSizeMeters).toInt()
         
-        // If grid radius exceeds maximum, limit it to 100 cells
+        // limit radius for performance
         val safeGridRadius = gridRadius.coerceAtMost(100)
         if (safeGridRadius < gridRadius) {
             lastWarning = "Search radius limited to ${safeGridRadius * gridSizeMeters}m for performance"
@@ -216,21 +216,13 @@ class DigipointSDK private constructor(
         }
     }
     
-    fun createMapsUrl(digipointCode: DigipointCode): String {
-        return Utils.createMapsUrl(digipointCode)
-    }
+    fun createMapsUrl(digipointCode: DigipointCode): String = Utils.createMapsUrl(digipointCode)
     
-    fun getPrecisionDescription(digipointCode: DigipointCode): String {
-        return Utils.getPrecisionDescription(digipointCode)
-    }
+    fun getPrecisionDescription(digipointCode: DigipointCode): String = Utils.getPrecisionDescription(digipointCode)
     
-    fun calculateAreaSquareMeters(digipointCode: DigipointCode): Double {
-        return Utils.calculateAreaSquareMeters(digipointCode)
-    }
+    fun calculateAreaSquareMeters(digipointCode: DigipointCode): Double = Utils.calculateAreaSquareMeters(digipointCode)
     
-    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double {
-        return Utils.calculateDistance(coord1, coord2)
-    }
+    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double = Utils.calculateDistance(coord1, coord2)
     
     private fun decodeInternal(code: String): Pair<DigipinCoordinate, DigipointBoundingBox> {
         var latMin = INDIA_MIN_LAT
@@ -245,7 +237,7 @@ class DigipointSDK private constructor(
             var row = -1
             var col = -1
             
-            // Locate character in DIGIPIN grid
+            // find char in grid
             for (r in 0..3) {
                 for (c in 0..3) {
                     if (SYMBOLS[r * 4 + c] == char) {
@@ -259,7 +251,7 @@ class DigipointSDK private constructor(
             }
             
             if (!found) {
-                throw DigipointInvalidFormatException(code, "Invalid character: $char")
+                throw DigipointInvalidFormatException(code, "bad char: $char")
             }
             
             val latDiv = (latMax - latMin) / 4

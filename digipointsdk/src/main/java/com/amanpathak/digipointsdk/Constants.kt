@@ -5,7 +5,7 @@ internal object Constants {
     const val GRID_SIZE_METERS = 4.0
     const val DIGIPOINT_CODE_LENGTH = 10
     
-    // Official DIGIPOINT grid layout (4x4)
+    // DIGIPOINT grid layout
     val DIGIPOINT_GRID = arrayOf(
         arrayOf('F', 'C', '9', '8'),
         arrayOf('J', '3', '2', '7'),
@@ -13,11 +13,11 @@ internal object Constants {
         arrayOf('L', 'M', 'P', 'T')
     )
     
-    // Flattened symbol list for indexing
+    // flattened symbols for indexing
     val SYMBOLS = DIGIPOINT_GRID.flatMap { it.toList() }
     const val DIGIPOINT_PATTERN = "[FC98J327K456LMPT]{10}"
     
-    // Official DIGIPOINT boundaries
+    // Indian boundaries
     const val INDIA_MIN_LAT = 2.5
     const val INDIA_MAX_LAT = 38.5
     const val INDIA_MIN_LON = 63.5

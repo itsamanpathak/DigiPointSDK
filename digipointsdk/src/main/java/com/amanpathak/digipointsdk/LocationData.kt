@@ -1,37 +1,6 @@
 package com.amanpathak.digipointsdk
 
-internal object Constants {
-    const val VERSION = "0.1.0"
-    const val GRID_SIZE_METERS = 4.0
-    const val DIGIPOINT_CODE_LENGTH = 10
-    
-    // DIGIPOINT grid layout
-    val DIGIPOINT_GRID = arrayOf(
-        arrayOf('F', 'C', '9', '8'),
-        arrayOf('J', '3', '2', '7'),
-        arrayOf('K', '4', '5', '6'),
-        arrayOf('L', 'M', 'P', 'T')
-    )
-    
-    // flattened symbols for indexing
-    val SYMBOLS = DIGIPOINT_GRID.flatMap { it.toList() }
-    const val DIGIPOINT_PATTERN = "[FC98J327K456LMPT]{10}"
-    
-    // Indian boundaries
-    const val INDIA_MIN_LAT = 2.5
-    const val INDIA_MAX_LAT = 38.5
-    const val INDIA_MIN_LON = 63.5
-    const val INDIA_MAX_LON = 99.5
-    
-    object ErrorMessages {
-        const val INVALID_DIGIPOINT_LENGTH = "DigiPin must be exactly 10 characters"
-        const val INVALID_DIGIPOINT_CHARACTERS = "DigiPin contains invalid characters"
-        const val INVALID_LATITUDE = "Latitude must be between -90 and 90"
-        const val INVALID_LONGITUDE = "Longitude must be between -180 and 180"
-        const val COORDINATE_OUT_OF_BOUNDS = "Coordinate is outside Indian geographical bounds"
-        const val NEGATIVE_RADIUS = "Radius must be positive"
-        const val EMPTY_COORDINATE_LIST = "Coordinate list cannot be empty"
-    }
+internal object LocationData {
     
     object IndianCities {
         data class CityInfo(

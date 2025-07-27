@@ -19,13 +19,13 @@ data class DigipinCoordinate(
 }
 
 data class DigipointCode(
-    val code: String,
+    val digipin: String,
     val centerCoordinate: DigipinCoordinate,
     val boundingBox: DigipointBoundingBox
 ) {
     init {
-        require(code.length == 10) { 
-            "DIGIPOINT code must be exactly 10 characters, got ${code.length}" 
+        require(digipin.length == 10) {
+            "DIGIPOINT code must be exactly 10 characters, got ${digipin.length}"
         }
     }
     
@@ -33,15 +33,15 @@ data class DigipointCode(
      * Returns formatted code with hyphens (e.g., "39J-438-P582")
      */
     fun getFormattedCode(): String {
-        return if (code.length == 10) {
-            "${code.substring(0, 3)}-${code.substring(3, 6)}-${code.substring(6, 10)}"
+        return if (digipin.length == 10) {
+            "${digipin.substring(0, 3)}-${digipin.substring(3, 6)}-${digipin.substring(6, 10)}"
         } else {
-            code
+            digipin
         }
     }
     
     override fun toString(): String {
-        return "Digipin(code='$code', center=$centerCoordinate)"
+        return "Digipin(code='$digipin', center=$centerCoordinate)"
     }
 }
 

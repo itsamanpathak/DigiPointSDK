@@ -26,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amanpathak.digipointsdk.DigipointSDK
-import com.amanpathak.digipointsdk.DigipinCoordinate
 import com.amanpathak.digipointsdk.demo.ui.theme.DigipointTheme
 
 class MainActivity : ComponentActivity() {
@@ -141,7 +140,7 @@ fun DigipointConverterScreen() {
                 Button(
                     onClick = {
                         try {
-                            val decoded = sdk.decode(digipointInput)
+                            val decoded = sdk.generateLatLon(digipointInput)
                             decodedLatLon = Pair(decoded.centerCoordinate.latitude, decoded.centerCoordinate.longitude)
                         } catch (e: Exception) {
                             decodedLatLon = null
@@ -165,7 +164,7 @@ fun DigipointConverterScreen() {
                         Text("Longitude: $lon", fontWeight = FontWeight.Medium)
                         OutlinedButton(
                             onClick = {
-                                val url = sdk.createMapsUrl(sdk.decode(digipointInput))
+                                val url = sdk.createGoogleMapsUrl(sdk.generateLatLon(digipointInput))
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                 context.startActivity(intent)
                             },
@@ -221,8 +220,8 @@ fun DigipointConverterScreen() {
                         try {
                             val lat = latInput.toDouble()
                             val lon = lonInput.toDouble()
-                            val code = sdk.encode(DigipinCoordinate(lat, lon))
-                            encodedDigipoint = code.code
+                            val code = sdk.generateDigipin(lat, lon)
+                            encodedDigipoint = code.digipin
                         } catch (e: Exception) {
                             encodedDigipoint = null
                             Toast.makeText(context, "Encode Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -239,7 +238,7 @@ fun DigipointConverterScreen() {
                 
                 encodedDigipoint?.let { code ->
                     val formattedCode = try {
-                        sdk.decode(code).getFormattedCode()
+                        sdk.generateLatLon(code).getFormattedCode()
                     } catch (e: Exception) {
                         "${code.substring(0, 3)}-${code.substring(3, 6)}-${code.substring(6, 10)}"
                     }
@@ -266,7 +265,7 @@ fun DigipointConverterScreen() {
                             
                             OutlinedButton(
                                 onClick = {
-                                    val url = sdk.createMapsUrl(sdk.decode(code))
+                                    val url = sdk.createGoogleMapsUrl(sdk.generateLatLon(code))
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                     context.startActivity(intent)
                                 }

@@ -101,17 +101,17 @@ val sdk = DigipointSDK.Builder()
 ```kotlin
 // Example: New Delhi coordinates
 val coordinate = DigipinCoordinate(28.6139, 77.2090)
-val digipinCode = sdk.encode(coordinate)
+val digipinCode = sdk.generateDigipin(coordinate)
 
 println("DIGIPIN: ${digipinCode.getFormattedCode()}") // Output: 39J-438-P582
 println("Center: ${digipinCode.centerCoordinate}") // Output: (28.6139, 77.2090)
 ```
 
-### Decode DIGIPIN to Coordinates
+### Generate Lat/Lon from DIGIPIN
 
 ```kotlin
 val code = "39J438P582"
-val digipinCode = sdk.decode(code)
+val digipinCode = sdk.generateLatLon(code)
 
 println("Coordinates: ${digipinCode.centerCoordinate}")
 println("Bounding Box: ${digipinCode.boundingBox}")
@@ -132,29 +132,29 @@ val sdk = DigipointSDK.Builder()
 - `setValidationEnabled(boolean)`: Enable/disable coordinate and format validation
 - `setPrecisionLevel(int)`: Set DIGIPIN precision level (1-10, default: 10)
 
-### Step 2: Encode Geographic Coordinates
+### Step 2: Generate DIGIPIN from Coordinates
 
 ```kotlin
 // Method 1: Using DigipinCoordinate object
 val coordinate = DigipinCoordinate(28.6139, 77.2090)
-val digipinCode = sdk.encode(coordinate)
+val digipinCode = sdk.generateDigipin(coordinate)
 
 // Method 2: Using latitude and longitude directly
-val digipinCode = sdk.encode(28.6139, 77.2090)
+val digipinCode = sdk.generateDigipin(28.6139, 77.2090)
 
 // Get formatted code for display
 val formattedCode = digipinCode.getFormattedCode() // "39J-438-P582"
 ```
 
-### Step 3: Decode DIGIPIN Codes
+### Step 3: Generate Lat/Lon from DIGIPIN
 
 ```kotlin
-// Decode a DIGIPIN code (with or without hyphens)
-val digipinCode = sdk.decode("39J438P582")
+// Generate coordinates from a DIGIPIN code (with or without hyphens)
+val digipinCode = sdk.generateLatLon("39J438P582")
 // or
-val digipinCode = sdk.decode("39J-438-P582")
+val digipinCode = sdk.generateLatLon("39J-438-P582")
 
-// Access decoded information
+// Access generated information
 val center = digipinCode.centerCoordinate
 val bounds = digipinCode.boundingBox
 val area = sdk.calculateAreaSquareMeters(digipinCode)
@@ -191,8 +191,8 @@ try {
     // Validate DIGIPIN code format
     val isValidCode = sdk.isValidDigipointCode("39J438P582")
     
-    // Encode with validation
-    val digipinCode = sdk.encode(coordinate)
+    // Generate DIGIPIN with validation
+    val digipinCode = sdk.generateDigipin(coordinate)
     
 } catch (e: DigipointOutOfBoundsException) {
     // Handle coordinates outside Indian boundaries
@@ -205,20 +205,22 @@ try {
 
 ## 📚 API Reference
 
+For a complete and organized reference of all public methods, see [PUBLIC_API.md](PUBLIC_API.md).
+
 ### Core Classes
 
 #### `DigipointSDK`
 Main entry point for all DIGIPIN operations.
 
-**Methods:**
-- `encode(coordinate: DigipinCoordinate): DigipointCode`
-- `encode(latitude: Double, longitude: Double): DigipointCode`
-- `decode(code: String): DigipointCode`
+**Public Methods:**
+- `generateDigipin(latitude: Double, longitude: Double): DigipointCode`
+- `generateLatLon(code: String): DigipointCode`
 - `isWithinIndianBounds(coordinate: DigipinCoordinate): Boolean`
 - `isValidDigipointCode(code: String): Boolean`
 - `getNeighbors(code: String, radius: Int = 1): List<DigipointCode>`
 - `findDigipointCodesInRadius(center: DigipinCoordinate, radiusMeters: Double): List<DigipointCode>`
 - `createMapsUrl(digipointCode: DigipointCode): String`
+- `getPrecisionDescription(digipointCode: DigipointCode): String`
 - `calculateAreaSquareMeters(digipointCode: DigipointCode): Double`
 - `calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double`
 
@@ -272,7 +274,7 @@ class LocationService {
     fun getLocationInfo(latitude: Double, longitude: Double): LocationInfo {
         return try {
             val coordinate = DigipinCoordinate(latitude, longitude)
-            val digipinCode = sdk.encode(coordinate)
+            val digipinCode = sdk.generateDigipin(coordinate)
             
             LocationInfo(
                 digipinCode = digipinCode.getFormattedCode(),
@@ -303,7 +305,7 @@ fun validateAddress(latitude: Double, longitude: Double): ValidationResult {
     val sdk = DigipointSDK.Builder().build()
     
     return if (sdk.isWithinIndianBounds(DigipinCoordinate(latitude, longitude))) {
-        val digipinCode = sdk.encode(latitude, longitude)
+        val digipinCode = sdk.generateDigipin(latitude, longitude)
         ValidationResult.Success(digipinCode.getFormattedCode())
     } else {
         ValidationResult.Error("Address is outside India")

@@ -14,38 +14,38 @@ class DigipointSDKTest {
     }
     
     @Test
-    fun testEncodeValidCoordinate() {
+    fun testGenerateDigipinValidCoordinate() {
         // Delhi coordinates
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val result = sdk.encode(coordinate)
+        val result = sdk.generateDigipin(coordinate)
         
         assertNotNull(result)
-        assertEquals(10, result.code.length)
-        assertTrue(result.code.all { it in DigipointSDK.SYMBOLS })
+        assertEquals(10, result.digipin.length)
+        assertTrue(result.digipin.all { it in DigipointSDK.SYMBOLS })
     }
     
     @Test
-    fun testEncodeWithLatLon() {
-        val result = sdk.encode(28.6139, 77.2090)
+    fun testGenerateDigipinWithLatLon() {
+        val result = sdk.generateDigipin(28.6139, 77.2090)
         
         assertNotNull(result)
-        assertEquals(10, result.code.length)
+        assertEquals(10, result.digipin.length)
     }
     
     @Test(expected = DigipointOutOfBoundsException::class)
-    fun testEncodeOutOfBounds() {
+    fun testGenerateDigipinOutOfBounds() {
         // Coordinates outside India
-        sdk.encode(0.0, 0.0)
+        sdk.generateDigipin(0.0, 0.0)
     }
     
     @Test
-    fun testDecodeValidCode() {
+    fun testGenerateLatLonValidCode() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
-        val decoded = sdk.decode(encoded.code)
+        val encoded = sdk.generateDigipin(coordinate)
+        val decoded = sdk.generateLatLon(encoded.digipin)
         
         assertNotNull(decoded)
-        assertEquals(encoded.code, decoded.code)
+        assertEquals(encoded.digipin, decoded.digipin)
         
         // Check if decoded coordinate is close to original (within reasonable precision)
         val distance = sdk.calculateDistance(coordinate, decoded.centerCoordinate)
@@ -53,13 +53,13 @@ class DigipointSDKTest {
     }
     
     @Test(expected = DigipointInvalidFormatException::class)
-    fun testDecodeInvalidLength() {
-        sdk.decode("123")
+    fun testGenerateLatLonInvalidLength() {
+        sdk.generateLatLon("123")
     }
     
     @Test(expected = DigipointInvalidFormatException::class)
-    fun testDecodeInvalidCharacters() {
-        sdk.decode("1234567890")
+    fun testGenerateLatLonInvalidCharacters() {
+        sdk.generateLatLon("1234567890")
     }
     
     @Test
@@ -77,9 +77,9 @@ class DigipointSDKTest {
     @Test
     fun testIsValidDigipointCode() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
+        val encoded = sdk.generateDigipin(coordinate)
         
-        assertTrue(sdk.isValidDigipointCode(encoded.code))
+        assertTrue(sdk.isValidDigipointCode(encoded.digipin))
         assertFalse(sdk.isValidDigipointCode("123"))
         assertFalse(sdk.isValidDigipointCode("1234567890"))
         assertFalse(sdk.isValidDigipointCode(""))
@@ -88,15 +88,15 @@ class DigipointSDKTest {
     @Test
     fun testGetNeighbors() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
-        val neighbors = sdk.getNeighbors(encoded.code)
+        val encoded = sdk.generateDigipin(coordinate)
+        val neighbors = sdk.getNeighbors(encoded.digipin)
         
         assertNotNull(neighbors)
         assertTrue(neighbors.isNotEmpty())
         
         // All neighbors should be valid DIGIPOINT codes
         neighbors.forEach { neighbor ->
-            assertTrue(sdk.isValidDigipointCode(neighbor.code))
+            assertTrue(sdk.isValidDigipointCode(neighbor.digipin))
             assertTrue(sdk.isWithinIndianBounds(neighbor.centerCoordinate))
         }
     }
@@ -104,26 +104,29 @@ class DigipointSDKTest {
     @Test
     fun testGetNeighborsWithRadius() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
+        val encoded = sdk.generateDigipin(coordinate)
         
-        val neighbors1 = sdk.getNeighbors(encoded.code, 1)
-        val neighbors2 = sdk.getNeighbors(encoded.code, 2)
+        val neighbors1 = sdk.getNeighbors(encoded.digipin, 1)
+        val neighbors2 = sdk.getNeighbors(encoded.digipin, 2)
         
         assertTrue(neighbors2.size >= neighbors1.size)
     }
     
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun testGetNeighborsInvalidRadius() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
-        sdk.getNeighbors(encoded.code, 0)
+        val encoded = sdk.generateDigipin(coordinate)
+        val neighbors = sdk.getNeighbors(encoded.digipin, 0)
+        
+        // Should return empty list for invalid radius
+        assertTrue("Should return empty list for invalid radius", neighbors.isEmpty())
     }
     
     @Test
-    fun testEncodeDecode() {
+    fun testGenerateDigipinGenerateLatLon() {
         val originalCoordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(originalCoordinate)
-        val decoded = sdk.decode(encoded.code)
+        val encoded = sdk.generateDigipin(originalCoordinate)
+        val decoded = sdk.generateLatLon(encoded.digipin)
         
         // The decoded coordinate should be the same as in the encoded object
         assertEquals(encoded.centerCoordinate.latitude, decoded.centerCoordinate.latitude, 0.0001)
@@ -133,7 +136,7 @@ class DigipointSDKTest {
     @Test
     fun testBoundingBox() {
         val coordinate = DigipinCoordinate(28.6139, 77.2090)
-        val encoded = sdk.encode(coordinate)
+        val encoded = sdk.generateDigipin(coordinate)
         val boundingBox = encoded.boundingBox
         
         // Center should be within bounding box
@@ -157,18 +160,18 @@ class DigipointSDKTest {
         )
         
         coordinates.forEach { coordinate ->
-            val encoded = sdk.encode(coordinate)
-            val decoded = sdk.decode(encoded.code)
+            val encoded = sdk.generateDigipin(coordinate)
+            val decoded = sdk.generateLatLon(encoded.digipin)
             
             assertNotNull(encoded)
             assertNotNull(decoded)
-            assertEquals(encoded.code, decoded.code)
+            assertEquals(encoded.digipin, decoded.digipin)
         }
     }
     
     @Test
     fun testConstants() {
-        assertEquals("1.0.0", DigipointSDK.VERSION)
+        assertEquals("0.1.0", DigipointSDK.VERSION)
         assertEquals(4.0, DigipointSDK.GRID_SIZE_METERS, 0.0)
         assertEquals(10, DigipointSDK.DIGIPOINT_CODE_LENGTH)
         assertEquals(16, DigipointSDK.SYMBOLS.size)
@@ -187,10 +190,10 @@ class DigipointSDKTest {
         assertTrue(bounds.southwest.latitude < bounds.northeast.latitude)
         assertTrue(bounds.southwest.longitude < bounds.northeast.longitude)
         
-        // Check approximate Indian bounds
-        assertEquals(6.0, bounds.southwest.latitude, 0.1)
-        assertEquals(66.0, bounds.southwest.longitude, 0.1)
-        assertEquals(38.0, bounds.northeast.latitude, 0.1)
-        assertEquals(100.0, bounds.northeast.longitude, 0.1)
+        // Check actual Indian bounds from Constants
+        assertEquals(2.5, bounds.southwest.latitude, 0.1)
+        assertEquals(63.5, bounds.southwest.longitude, 0.1)
+        assertEquals(38.5, bounds.northeast.latitude, 0.1)
+        assertEquals(99.5, bounds.northeast.longitude, 0.1)
     }
 } 

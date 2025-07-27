@@ -7,7 +7,7 @@ import java.util.regex.Pattern
  */
 internal object Validation {
     
-    private val DIGIPOINT_PATTERN = Pattern.compile("[FC98J327K456LMPT]{10}")
+    private val DIGIPOINT_PATTERN = Pattern.compile(GridConstants.DIGIPOINT_PATTERN)
     
     data class ValidationResult(
         val isValid: Boolean,
@@ -26,18 +26,18 @@ internal object Validation {
             )
         }
         
-        if (code.length != Constants.DIGIPOINT_CODE_LENGTH) {
+        if (code.length != SDKConstants.DIGIPOINT_CODE_LENGTH) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.INVALID_DIGIPOINT_LENGTH}, got ${code.length}"
+                errorMessage = "${ErrorMessages.INVALID_DIGIPOINT_LENGTH}, got ${code.length}"
             )
         }
         
         if (!DIGIPOINT_PATTERN.matcher(code).matches()) {
-            val invalidChars = code.filter { it !in Constants.SYMBOLS }
+            val invalidChars = code.filter { it !in GridConstants.SYMBOLS }
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.INVALID_DIGIPOINT_CHARACTERS}: ${invalidChars.toSet().joinToString()}"
+                errorMessage = "${ErrorMessages.INVALID_DIGIPOINT_CHARACTERS}: ${invalidChars.toSet().joinToString()}"
             )
         }
         
@@ -51,14 +51,14 @@ internal object Validation {
         if (latitude < -90.0 || latitude > 90.0) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.INVALID_LATITUDE}, got $latitude"
+                errorMessage = "${ErrorMessages.INVALID_LATITUDE}, got $latitude"
             )
         }
         
         if (longitude < -180.0 || longitude > 180.0) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.INVALID_LONGITUDE}, got $longitude"
+                errorMessage = "${ErrorMessages.INVALID_LONGITUDE}, got $longitude"
             )
         }
         
@@ -77,16 +77,15 @@ internal object Validation {
         if (!isWithinIndianBounds(coordinate)) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.COORDINATE_OUT_OF_BOUNDS}: $coordinate"
+                errorMessage = "${ErrorMessages.COORDINATE_OUT_OF_BOUNDS}: $coordinate"
             )
         }
         
         // Check if coordinate is near the boundary
-        val buffer = 0.1 // ~11km buffer
-        if (coordinate.latitude > Constants.INDIA_MAX_LAT - buffer ||
-            coordinate.latitude < Constants.INDIA_MIN_LAT + buffer ||
-            coordinate.longitude > Constants.INDIA_MAX_LON - buffer ||
-            coordinate.longitude < Constants.INDIA_MIN_LON + buffer) {
+        if (coordinate.latitude > GeographicConstants.INDIA_MAX_LAT - GeographicConstants.BOUNDARY_BUFFER ||
+            coordinate.latitude < GeographicConstants.INDIA_MIN_LAT + GeographicConstants.BOUNDARY_BUFFER ||
+            coordinate.longitude > GeographicConstants.INDIA_MAX_LON - GeographicConstants.BOUNDARY_BUFFER ||
+            coordinate.longitude < GeographicConstants.INDIA_MIN_LON + GeographicConstants.BOUNDARY_BUFFER) {
             return ValidationResult(
                 isValid = true,
                 warningMessage = "Coordinate is near Indian geographical boundary, some nearby DIGIPOINTs might be unavailable"
@@ -106,7 +105,7 @@ internal object Validation {
         if (radius <= 0) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.NEGATIVE_RADIUS}, got $radius"
+                errorMessage = "${ErrorMessages.NEGATIVE_RADIUS}, got $radius"
             )
         }
         
@@ -130,7 +129,7 @@ internal object Validation {
         if (radiusMeters <= 0.0) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "${Constants.ErrorMessages.NEGATIVE_RADIUS} in meters, got $radiusMeters"
+                errorMessage = "${ErrorMessages.NEGATIVE_RADIUS} in meters, got $radiusMeters"
             )
         }
         
@@ -141,10 +140,10 @@ internal object Validation {
             )
         }
         
-        if (radiusMeters < Constants.GRID_SIZE_METERS) {
+        if (radiusMeters < SDKConstants.GRID_SIZE_METERS) {
             return ValidationResult(
                 isValid = true,
-                warningMessage = "Radius smaller than grid size (${Constants.GRID_SIZE_METERS}m) may not find any results"
+                warningMessage = "Radius smaller than grid size (${SDKConstants.GRID_SIZE_METERS}m) may not find any results"
             )
         }
         
@@ -159,7 +158,7 @@ internal object Validation {
      */
     fun validateCoordinateList(coordinates: List<DigipinCoordinate>): ValidationResult {
         if (coordinates.isEmpty()) {
-            return ValidationResult(false, Constants.ErrorMessages.EMPTY_COORDINATE_LIST)
+            return ValidationResult(false, ErrorMessages.EMPTY_COORDINATE_LIST)
         }
         
         coordinates.forEachIndexed { index, coord ->
@@ -179,10 +178,10 @@ internal object Validation {
      * @return ValidationResult containing success status and error message if any
      */
     fun validatePrecisionLevel(precision: Int): ValidationResult {
-        if (precision < 1 || precision > Constants.DIGIPOINT_CODE_LENGTH) {
+        if (precision < 1 || precision > SDKConstants.DIGIPOINT_CODE_LENGTH) {
             return ValidationResult(
                 isValid = false,
-                errorMessage = "Precision must be between 1 and ${Constants.DIGIPOINT_CODE_LENGTH}, got $precision"
+                errorMessage = "Precision must be between 1 and ${SDKConstants.DIGIPOINT_CODE_LENGTH}, got $precision"
             )
         }
         
@@ -200,10 +199,10 @@ internal object Validation {
      * Checks if coordinate is within Indian geographical bounds.
      */
     private fun isWithinIndianBounds(coordinate: DigipinCoordinate): Boolean {
-        return coordinate.latitude >= Constants.INDIA_MIN_LAT &&
-               coordinate.latitude <= Constants.INDIA_MAX_LAT &&
-               coordinate.longitude >= Constants.INDIA_MIN_LON &&
-               coordinate.longitude <= Constants.INDIA_MAX_LON
+        return coordinate.latitude >= GeographicConstants.INDIA_MIN_LAT &&
+               coordinate.latitude <= GeographicConstants.INDIA_MAX_LAT &&
+               coordinate.longitude >= GeographicConstants.INDIA_MIN_LON &&
+               coordinate.longitude <= GeographicConstants.INDIA_MAX_LON
     }
     
     /**

@@ -59,30 +59,70 @@ class DigipointSDK private constructor(
 
 
     /** Generate DIGIPIN code from coordinates */
-    @Throws(DigipointOutOfBoundsException::class)
-    fun generateDigipin(latitude: Double, longitude: Double): DigipointCode {
-        return generateDigipin(DigipinCoordinate(latitude, longitude))
+    fun generateDigipin(latitude: Double, longitude: Double): DigipointResult<DigipointCode> {
+        return try {
+            // Validate coordinates first
+            val coordResult = DigipinCoordinate.create(latitude, longitude)
+            if (coordResult is DigipointResult.Error) {
+                return coordResult
+            }
+            
+            val coordinate = (coordResult as DigipointResult.Success).data
+            
+            // Check Indian bounds
+            if (!isWithinIndianBounds(coordinate)) {
+                return DigipointResult.Error(
+                    "Coordinate $coordinate is outside Indian bounds", 
+                    "OUT_OF_BOUNDS"
+                )
+            }
+            
+            // Generate DIGIPIN
+            val result = generateDigipinInternal(coordinate)
+            if (result is DigipointResult.Success) {
+                DigipointResult.Success(result.data)
+            } else {
+                result
+            }
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to generate DIGIPIN: ${e.message}", "GENERATION_FAILED")
+        }
     }
     
     /** Generate coordinates from DIGIPIN code */
-    @Throws(DigipointInvalidFormatException::class)
-    fun generateLatLon(digipin: String): DigipointCode {
-        // validate format if enabled
-        if (config.validationEnabled) {
-            val validation = Validation.validateDigipointCode(digipin)
-            if (!validation.isValid) {
-                throw DigipointInvalidFormatException(digipin, validation.errorMessage ?: "Invalid format")
+    fun generateLatLon(digipin: String): DigipointResult<DigipointCode> {
+        return try {
+            // Validate DIGIPIN format
+            if (config.validationEnabled) {
+                val validation = Validation.validateDigipointCode(digipin)
+                if (!validation.isValid) {
+                    return DigipointResult.Error(
+                        validation.errorMessage ?: "Invalid DIGIPIN format", 
+                        "INVALID_FORMAT"
+                    )
+                }
+                lastWarning = validation.warningMessage
             }
-            lastWarning = validation.warningMessage
+            
+            // Generate coordinates
+            val (centerCoord, boundingBox) = generateLatLonInternal(digipin)
+            if (centerCoord is DigipointResult.Error) {
+                return centerCoord
+            }
+            
+            val center = (centerCoord as DigipointResult.Success<DigipinCoordinate>).data
+            val bounds = (boundingBox as DigipointResult.Success<DigipointBoundingBox>).data
+            
+            // Create DigipointCode
+            val codeResult = DigipointCode.create(digipin, center, bounds)
+            if (codeResult is DigipointResult.Success) {
+                DigipointResult.Success(codeResult.data)
+            } else {
+                codeResult
+            }
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to generate coordinates: ${e.message}", "GENERATION_FAILED")
         }
-        
-        val (centerCoord, boundingBox) = generateLatLonInternal(digipin)
-        
-        return DigipointCode(
-            digipin = digipin,
-            centerCoordinate = centerCoord,
-            boundingBox = boundingBox
-        )
     }
 
 
@@ -97,210 +137,299 @@ class DigipointSDK private constructor(
     }
 
     /** Get neighboring DIGIPIN codes */
-    fun getNeighbors(digipin: String, radius: Int = 1): List<DigipointCode> {
-        // validate radius if needed
-        if (config.validationEnabled) {
-            val validation = Validation.validateRadius(radius)
-            if (!validation.isValid) {
-                lastWarning = null
-                return emptyList()
+    fun getNeighbors(digipin: String, radius: Int = 1): DigipointResult<List<DigipointCode>> {
+        return try {
+            // validate radius if needed
+            if (config.validationEnabled) {
+                val validation = Validation.validateRadius(radius)
+                if (!validation.isValid) {
+                    lastWarning = null
+                    return DigipointResult.Error(
+                        validation.errorMessage ?: "Invalid radius", 
+                        "INVALID_RADIUS"
+                    )
+                }
+                lastWarning = validation.warningMessage
             }
-            lastWarning = validation.warningMessage
-        }
-        
-        val centerDigipoint = generateLatLon(digipin)
-        val neighbors = mutableListOf<DigipointCode>()
-        
-        // calculate grid size
-        val gridSizeLat = (centerDigipoint.boundingBox.northeast.latitude - 
-                          centerDigipoint.boundingBox.southwest.latitude)
-        val gridSizeLon = (centerDigipoint.boundingBox.northeast.longitude - 
-                          centerDigipoint.boundingBox.southwest.longitude)
-        
-        // find neighbors in grid
-        for (latOffset in -radius..radius) {
-            for (lonOffset in -radius..radius) {
-                if (latOffset == 0 && lonOffset == 0) continue // skip center
-                
-                val neighborLat = centerDigipoint.centerCoordinate.latitude + (latOffset * gridSizeLat)
-                val neighborLon = centerDigipoint.centerCoordinate.longitude + (lonOffset * gridSizeLon)
-                
-                try {
-                    val neighborCoord = DigipinCoordinate(neighborLat, neighborLon)
-                    if (isWithinIndianBounds(neighborCoord)) {
-                        neighbors.add(generateDigipin(neighborCoord))
+            
+            // Generate center DIGIPIN
+            val centerResult = generateLatLon(digipin)
+            if (centerResult is DigipointResult.Error) {
+                return centerResult
+            }
+            
+            val centerDigipoint = (centerResult as DigipointResult.Success).data
+            val neighbors = mutableListOf<DigipointCode>()
+            
+            // calculate grid size
+            val gridSizeLat = (centerDigipoint.boundingBox.northeast.latitude - 
+                              centerDigipoint.boundingBox.southwest.latitude)
+            val gridSizeLon = (centerDigipoint.boundingBox.northeast.longitude - 
+                              centerDigipoint.boundingBox.southwest.longitude)
+            
+            // find neighbors in grid
+            for (latOffset in -radius..radius) {
+                for (lonOffset in -radius..radius) {
+                    if (latOffset == 0 && lonOffset == 0) continue // skip center
+                    
+                    val neighborLat = centerDigipoint.centerCoordinate.latitude + (latOffset * gridSizeLat)
+                    val neighborLon = centerDigipoint.centerCoordinate.longitude + (lonOffset * gridSizeLon)
+                    
+                    // Validate coordinates safely
+                    val coordResult = DigipinCoordinate.create(neighborLat, neighborLon)
+                    if (coordResult is DigipointResult.Success) {
+                        val neighborCoord = coordResult.data
+                        if (isWithinIndianBounds(neighborCoord)) {
+                            val neighborResult = generateDigipin(neighborLat, neighborLon)
+                            if (neighborResult is DigipointResult.Success) {
+                                neighbors.add(neighborResult.data)
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    // skip invalid coords
                 }
             }
+            
+            DigipointResult.Success(neighbors)
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to get neighbors: ${e.message}", "NEIGHBORS_FAILED")
         }
-        
-        return neighbors
     }
     
     /** Find DIGIPIN codes within radius */
     fun findDigipointCodesInRadius(
         center: DigipinCoordinate,
         radiusMeters: Double
-    ): List<DigipointCode> {
-        // validate radius
-        if (config.validationEnabled) {
-            val validation = Validation.validateDistanceRadius(radiusMeters)
-            if (!validation.isValid) {
-                lastWarning = null
-                return emptyList()
+    ): DigipointResult<List<DigipointCode>> {
+        return try {
+            // validate radius
+            if (config.validationEnabled) {
+                val validation = Validation.validateDistanceRadius(radiusMeters)
+                if (!validation.isValid) {
+                    lastWarning = null
+                    return DigipointResult.Error(
+                        validation.errorMessage ?: "Invalid radius", 
+                        "INVALID_RADIUS"
+                    )
+                }
+                lastWarning = validation.warningMessage
             }
-            lastWarning = validation.warningMessage
-        }
-        
-        // get center digipoint
-        val centerDigipoint = try {
-            generateDigipin(center)
-        } catch (e: DigipointOutOfBoundsException) {
-            lastWarning = "Center coordinate is outside Indian bounds"
-            return emptyList()
-        }
-        
-        val gridSizeMeters = Utils.calculateGridSizeMeters(centerDigipoint)
-        val gridRadius = kotlin.math.ceil(radiusMeters / gridSizeMeters).toInt()
-        
-        // limit radius for performance
-        val safeGridRadius = gridRadius.coerceAtMost(100)
-        if (safeGridRadius < gridRadius) {
-            lastWarning = "Search radius limited to ${safeGridRadius * gridSizeMeters}m for performance"
-        }
-        
-        val candidates = getNeighbors(centerDigipoint.digipin, safeGridRadius) + centerDigipoint
-        
-        return candidates.filter { candidate ->
-            Utils.calculateDistance(center, candidate.centerCoordinate) <= radiusMeters
+            
+            // Check if center is within Indian bounds
+            if (!isWithinIndianBounds(center)) {
+                return DigipointResult.Error(
+                    "Center coordinate is outside Indian bounds", 
+                    "OUT_OF_BOUNDS"
+                )
+            }
+            
+            // get center digipoint
+            val centerResult = generateDigipin(center.latitude, center.longitude)
+            if (centerResult is DigipointResult.Error) {
+                return centerResult
+            }
+            
+            val centerDigipoint = (centerResult as DigipointResult.Success).data
+            
+            val gridSizeMeters = Utils.calculateGridSizeMeters(centerDigipoint)
+            val gridRadius = kotlin.math.ceil(radiusMeters / gridSizeMeters).toInt()
+            
+            // limit radius for performance
+            val safeGridRadius = gridRadius.coerceAtMost(100)
+            if (safeGridRadius < gridRadius) {
+                lastWarning = "Search radius limited to ${safeGridRadius * gridSizeMeters}m for performance"
+            }
+            
+            // get neighbors
+            val neighborsResult = getNeighbors(centerDigipoint.digipin, safeGridRadius)
+            if (neighborsResult is DigipointResult.Error) {
+                return neighborsResult
+            }
+            
+            val candidates = (neighborsResult as DigipointResult.Success).data + centerDigipoint
+            
+            // filter by actual distance
+            val filtered = candidates.filter { candidate ->
+                Utils.calculateDistance(center, candidate.centerCoordinate) <= radiusMeters
+            }
+            
+            DigipointResult.Success(filtered)
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to find DIGIPIN codes in radius: ${e.message}", "RADIUS_SEARCH_FAILED")
         }
     }
     
     /** Create Google Maps URL */
-    fun createGoogleMapsUrl(digipointCode: DigipointCode): String = Utils.createMapsUrl(digipointCode)
+    fun createGoogleMapsUrl(digipointCode: DigipointCode): DigipointResult<String> {
+        return try {
+            DigipointResult.Success(Utils.createMapsUrl(digipointCode))
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to create Google Maps URL: ${e.message}", "URL_CREATION_FAILED")
+        }
+    }
     
     /** Get precision description */
-    fun getPrecisionDescription(digipointCode: DigipointCode): String = Utils.getPrecisionDescription(digipointCode)
+    fun getPrecisionDescription(digipointCode: DigipointCode): DigipointResult<String> {
+        return try {
+            DigipointResult.Success(Utils.getPrecisionDescription(digipointCode))
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to get precision description: ${e.message}", "PRECISION_FAILED")
+        }
+    }
     
     /** Calculate area in square meters */
-    fun calculateAreaSquareMeters(digipointCode: DigipointCode): Double = Utils.calculateAreaSquareMeters(digipointCode)
+    fun calculateAreaSquareMeters(digipointCode: DigipointCode): DigipointResult<Double> {
+        return try {
+            DigipointResult.Success(Utils.calculateAreaSquareMeters(digipointCode))
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to calculate area: ${e.message}", "AREA_CALCULATION_FAILED")
+        }
+    }
     
     /** Calculate distance between coordinates */
-    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): Double = Utils.calculateDistance(coord1, coord2)
-    
-
-
-    
-    @Throws(DigipointOutOfBoundsException::class)
-    internal fun generateDigipin(coordinate: DigipinCoordinate): DigipointCode {
-        // validate bounds if enabled
-        if (config.validationEnabled) {
-            val validation = Validation.validateIndianBounds(coordinate)
-            if (!validation.isValid) {
-                throw DigipointOutOfBoundsException(coordinate, INDIA_BOUNDS)
-            }
-            lastWarning = validation.warningMessage
+    fun calculateDistance(coord1: DigipinCoordinate, coord2: DigipinCoordinate): DigipointResult<Double> {
+        return try {
+            DigipointResult.Success(Utils.calculateDistance(coord1, coord2))
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to calculate distance: ${e.message}", "DISTANCE_CALCULATION_FAILED")
         }
-        
-        var latMin = INDIA_MIN_LAT
-        var latMax = INDIA_MAX_LAT
-        var lonMin = INDIA_MIN_LON
-        var lonMax = INDIA_MAX_LON
-        
-        val codeBuilder = StringBuilder()
-        
-        repeat(config.precisionLevel) { _ ->
-            val latDiv = (latMax - latMin) / 4
-            val lonDiv = (lonMax - lonMin) / 4
-            
-            // row logic is reversed to match original algo
-            var row = 3 - ((coordinate.latitude - latMin) / latDiv).toInt()
-            var col = ((coordinate.longitude - lonMin) / lonDiv).toInt()
-            
-            // clamp values
-            row = row.coerceIn(0, 3)
-            col = col.coerceIn(0, 3)
-            
-            val symbol = SYMBOLS[row * 4 + col]
-            codeBuilder.append(symbol)
-            
-            // update bounds for next iteration
-            latMax = latMin + latDiv * (4 - row)
-            latMin = latMin + latDiv * (3 - row)
-            
-            lonMin = lonMin + lonDiv * col
-            lonMax = lonMin + lonDiv
-        }
-        
-        val code = codeBuilder.toString()
-        val (centerCoord, boundingBox) = generateLatLonInternal(code)
-        
-        return DigipointCode(
-            digipin = code,
-            centerCoordinate = centerCoord,
-            boundingBox = boundingBox
-        )
     }
     
-    private fun generateLatLonInternal(code: String): Pair<DigipinCoordinate, DigipointBoundingBox> {
-        var latMin = INDIA_MIN_LAT
-        var latMax = INDIA_MAX_LAT
-        var lonMin = INDIA_MIN_LON
-        var lonMax = INDIA_MAX_LON
-        
-        val cleanCode = code.replace("-", "")
-        
-        for (char in cleanCode) {
-            var found = false
-            var row = -1
-            var col = -1
-            
-            // find char in grid
-            for (r in 0..3) {
-                for (c in 0..3) {
-                    if (SYMBOLS[r * 4 + c] == char) {
-                        row = r
-                        col = c
-                        found = true
-                        break
-                    }
+
+
+    
+
+    
+    /** Internal method that returns Result */
+    internal fun generateDigipinInternal(coordinate: DigipinCoordinate): DigipointResult<DigipointCode> {
+        return try {
+            // validate bounds if enabled
+            if (config.validationEnabled) {
+                val validation = Validation.validateIndianBounds(coordinate)
+                if (!validation.isValid) {
+                    return DigipointResult.Error(
+                        validation.errorMessage ?: "Coordinate outside Indian bounds", 
+                        "OUT_OF_BOUNDS"
+                    )
                 }
-                if (found) break
+                lastWarning = validation.warningMessage
             }
             
-            if (!found) {
-                throw DigipointInvalidFormatException(code, "bad char: $char")
+            var latMin = INDIA_MIN_LAT
+            var latMax = INDIA_MAX_LAT
+            var lonMin = INDIA_MIN_LON
+            var lonMax = INDIA_MAX_LON
+            
+            val codeBuilder = StringBuilder()
+            
+            repeat(config.precisionLevel) { _ ->
+                val latDiv = (latMax - latMin) / 4
+                val lonDiv = (lonMax - lonMin) / 4
+                
+                // row logic is reversed to match original algo
+                var row = 3 - ((coordinate.latitude - latMin) / latDiv).toInt()
+                var col = ((coordinate.longitude - lonMin) / lonDiv).toInt()
+                
+                // clamp values
+                row = row.coerceIn(0, 3)
+                col = col.coerceIn(0, 3)
+                
+                val symbol = SYMBOLS[row * 4 + col]
+                codeBuilder.append(symbol)
+                
+                // update bounds for next iteration
+                latMax = latMin + latDiv * (4 - row)
+                latMin = latMin + latDiv * (3 - row)
+                
+                lonMin = lonMin + lonDiv * col
+                lonMax = lonMin + lonDiv
             }
             
-            val latDiv = (latMax - latMin) / 4
-            val lonDiv = (lonMax - lonMin) / 4
+            val code = codeBuilder.toString()
+            val (centerCoord, boundingBox) = generateLatLonInternal(code)
             
-            val lat1 = latMax - latDiv * (row + 1)
-            val lat2 = latMax - latDiv * row
-            val lon1 = lonMin + lonDiv * col
-            val lon2 = lonMin + lonDiv * (col + 1)
+            if (centerCoord is DigipointResult.Error) {
+                return centerCoord
+            }
             
-            // Update bounding box for next level
-            latMin = lat1
-            latMax = lat2
-            lonMin = lon1
-            lonMax = lon2
+            val center = (centerCoord as DigipointResult.Success<DigipinCoordinate>).data
+            val bounds = (boundingBox as DigipointResult.Success<DigipointBoundingBox>).data
+            
+            val codeResult = DigipointCode.create(code, center, bounds)
+            if (codeResult is DigipointResult.Success) {
+                DigipointResult.Success(codeResult.data)
+            } else {
+                codeResult
+            }
+        } catch (e: Exception) {
+            DigipointResult.Error("Failed to generate DIGIPIN: ${e.message}", "GENERATION_FAILED")
         }
-        
-        val centerCoord = DigipinCoordinate(
-            latitude = (latMin + latMax) / 2,
-            longitude = (lonMin + lonMax) / 2
-        )
-        
-        val boundingBox = DigipointBoundingBox(
-            southwest = DigipinCoordinate(latMin, lonMin),
-            northeast = DigipinCoordinate(latMax, lonMax)
-        )
-        
-        return Pair(centerCoord, boundingBox)
     }
+    
+    private fun generateLatLonInternal(code: String): Pair<DigipointResult<DigipinCoordinate>, DigipointResult<DigipointBoundingBox>> {
+        return try {
+            var latMin = INDIA_MIN_LAT
+            var latMax = INDIA_MAX_LAT
+            var lonMin = INDIA_MIN_LON
+            var lonMax = INDIA_MAX_LON
+            
+            val cleanCode = code.replace("-", "")
+            
+            for (char in cleanCode) {
+                var found = false
+                var row = -1
+                var col = -1
+                
+                // find char in grid
+                for (r in 0..3) {
+                    for (c in 0..3) {
+                        if (SYMBOLS[r * 4 + c] == char) {
+                            row = r
+                            col = c
+                            found = true
+                            break
+                        }
+                    }
+                    if (found) break
+                }
+                
+                if (!found) {
+                    val error = DigipointResult.Error("Invalid character in DIGIPIN code: $char", "INVALID_CHARACTER")
+                    return Pair(error, error)
+                }
+                
+                val latDiv = (latMax - latMin) / 4
+                val lonDiv = (lonMax - lonMin) / 4
+                
+                val lat1 = latMax - latDiv * (row + 1)
+                val lat2 = latMax - latDiv * row
+                val lon1 = lonMin + lonDiv * col
+                val lon2 = lonMin + lonDiv * (col + 1)
+                
+                // Update bounding box for next level
+                latMin = lat1
+                latMax = lat2
+                lonMin = lon1
+                lonMax = lon2
+            }
+            
+            val centerCoord = DigipinCoordinate.create(
+                latitude = (latMin + latMax) / 2,
+                longitude = (lonMin + lonMax) / 2
+            )
+            
+            val boundingBox = DigipointBoundingBox.create(
+                southwest = DigipinCoordinate(latMin, lonMin),
+                northeast = DigipinCoordinate(latMax, lonMax)
+            )
+            
+            Pair(centerCoord, boundingBox)
+        } catch (e: Exception) {
+            val error = DigipointResult.Error("Failed to decode DIGIPIN: ${e.message}", "DECODE_FAILED")
+            Pair(error, error)
+        }
+    }
+    
+
 }
 
 internal data class Config(

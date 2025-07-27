@@ -108,7 +108,7 @@ fun DigipointConverterScreen() {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            "Easily convert between Digipoint and Latitude/Longitude",
+            "Easily convert between Digipin and Latitude/Longitude",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -124,7 +124,7 @@ fun DigipointConverterScreen() {
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Digipoint → Lat/Lon", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text("Digipin → Lat/Lon", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 
                 OutlinedTextField(
                     value = digipointInput,
@@ -206,7 +206,7 @@ fun DigipointConverterScreen() {
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Lat/Lon → Digipoint", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text("Lat/Lon → Digipin", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 
                 OutlinedTextField(
                     value = latInput,
@@ -253,7 +253,7 @@ fun DigipointConverterScreen() {
                 ) {
                     Icon(Icons.Filled.SwapHoriz, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Convert to Digipoint")
+                    Text("Convert to Digipin")
                 }
                 
                 encodedDigipoint?.let { code ->
@@ -271,7 +271,7 @@ fun DigipointConverterScreen() {
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Digipoint: $formattedCode", fontWeight = FontWeight.Medium, fontSize = 20.sp)
+                        Text("Digipin: $formattedCode", fontWeight = FontWeight.Medium, fontSize = 20.sp)
                         
                         Row(
                             modifier = Modifier.padding(top = 8.dp),

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amanpathak.digipointsdk.DigipointSDK
 import com.amanpathak.digipointsdk.demo.ui.theme.DigipointTheme
+import com.amanpathak.digipointsdk.DigipointResult
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -139,12 +140,16 @@ fun DigipointConverterScreen() {
                 
                 Button(
                     onClick = {
-                        try {
-                            val decoded = sdk.generateLatLon(digipointInput)
-                            decodedLatLon = Pair(decoded.centerCoordinate.latitude, decoded.centerCoordinate.longitude)
-                        } catch (e: Exception) {
-                            decodedLatLon = null
-                            Toast.makeText(context, "Decode Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        val result = sdk.generateLatLon(digipointInput)
+                        when (result) {
+                            is DigipointResult.Success -> {
+                                val decoded = result.data
+                                decodedLatLon = Pair(decoded.centerCoordinate.latitude, decoded.centerCoordinate.longitude)
+                            }
+                            is DigipointResult.Error -> {
+                                decodedLatLon = null
+                                Toast.makeText(context, "Decode Error: ${result.message}", Toast.LENGTH_LONG).show()
+                            }
                         }
                     },
                     enabled = digipointInput.isNotBlank() && isValidDigipoint(digipointInput),
@@ -164,9 +169,21 @@ fun DigipointConverterScreen() {
                         Text("Longitude: $lon", fontWeight = FontWeight.Medium)
                         OutlinedButton(
                             onClick = {
-                                val url = sdk.createGoogleMapsUrl(sdk.generateLatLon(digipointInput))
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                context.startActivity(intent)
+                                val result = sdk.generateLatLon(digipointInput)
+                                if (result is DigipointResult.Success) {
+                                    val urlResult = sdk.createGoogleMapsUrl(result.data)
+                                    when (urlResult) {
+                                        is DigipointResult.Success -> {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlResult.data))
+                                            context.startActivity(intent)
+                                        }
+                                        is DigipointResult.Error -> {
+                                            Toast.makeText(context, "URL Error: ${urlResult.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Decode Error: ${(result as DigipointResult.Error).message}", Toast.LENGTH_LONG).show()
+                                }
                             },
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
@@ -217,14 +234,17 @@ fun DigipointConverterScreen() {
                 
                 Button(
                     onClick = {
-                        try {
-                            val lat = latInput.toDouble()
-                            val lon = lonInput.toDouble()
-                            val code = sdk.generateDigipin(lat, lon)
-                            encodedDigipoint = code.digipin
-                        } catch (e: Exception) {
-                            encodedDigipoint = null
-                            Toast.makeText(context, "Encode Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        val lat = latInput.toDouble()
+                        val lon = lonInput.toDouble()
+                        val result = sdk.generateDigipin(lat, lon)
+                        when (result) {
+                            is DigipointResult.Success -> {
+                                encodedDigipoint = result.data.digipin
+                            }
+                            is DigipointResult.Error -> {
+                                encodedDigipoint = null
+                                Toast.makeText(context, "Encode Error: ${result.message}", Toast.LENGTH_LONG).show()
+                            }
                         }
                     },
                     enabled = latInput.isNotBlank() && lonInput.isNotBlank() && 
@@ -238,7 +258,11 @@ fun DigipointConverterScreen() {
                 
                 encodedDigipoint?.let { code ->
                     val formattedCode = try {
-                        sdk.generateLatLon(code).getFormattedCode()
+                        val result = sdk.generateLatLon(code)
+                        when (result) {
+                            is DigipointResult.Success -> result.data.getFormattedCode()
+                            is DigipointResult.Error -> "${code.substring(0, 3)}-${code.substring(3, 6)}-${code.substring(6, 10)}"
+                        }
                     } catch (e: Exception) {
                         "${code.substring(0, 3)}-${code.substring(3, 6)}-${code.substring(6, 10)}"
                     }
@@ -265,9 +289,21 @@ fun DigipointConverterScreen() {
                             
                             OutlinedButton(
                                 onClick = {
-                                    val url = sdk.createGoogleMapsUrl(sdk.generateLatLon(code))
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                    context.startActivity(intent)
+                                    val result = sdk.generateLatLon(code)
+                                    if (result is DigipointResult.Success) {
+                                        val urlResult = sdk.createGoogleMapsUrl(result.data)
+                                        when (urlResult) {
+                                            is DigipointResult.Success -> {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlResult.data))
+                                                context.startActivity(intent)
+                                            }
+                                            is DigipointResult.Error -> {
+                                                Toast.makeText(context, "URL Error: ${urlResult.message}", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Decode Error: ${(result as DigipointResult.Error).message}", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             ) {
                                 Icon(Icons.Filled.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))

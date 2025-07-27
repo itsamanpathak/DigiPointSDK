@@ -129,7 +129,7 @@ fun DigipointConverterScreen() {
                 OutlinedTextField(
                     value = digipointInput,
                     onValueChange = { digipointInput = it.uppercase() },
-                    label = { Text("Enter Digipoint (e.g., 39J-438-P582)") },
+                    label = { Text("Enter Digipoint (e.g., 39J438P582)") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     isError = digipointInput.isNotBlank() && !isValidDigipoint(digipointInput),

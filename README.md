@@ -365,9 +365,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Related Links
 
-- [Official DIGIPIN Documentation](https://digipin.gov.in/)
+- [Official DIGIPIN Documentation](https://www.indiapost.gov.in/VAS/Pages/digipin.aspx)
 - [India Post Official Website](https://www.indiapost.gov.in/)
-- [GitHub Repository](https://github.com/itsamanpathak/DigiPointSDK)
+- [Official GitHub Repository](https://github.com/CEPT-VZG/digipin)
 
 ---
 

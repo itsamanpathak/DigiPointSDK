@@ -204,7 +204,7 @@ class DigipointSDKTest {
     
     @Test
     fun testConstants() {
-        assertEquals("0.1.0", DigipointSDK.VERSION)
+        assertEquals("0.2.0", DigipointSDK.VERSION)
         assertEquals(4.0, DigipointSDK.GRID_SIZE_METERS, 0.0)
         assertEquals(10, DigipointSDK.DIGIPOINT_CODE_LENGTH)
         assertEquals(16, DigipointSDK.SYMBOLS.size)
